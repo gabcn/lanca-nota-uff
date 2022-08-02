@@ -1,5 +1,5 @@
 # lanca-nota-uff
-Códugo para lançamento automatizado de notas no sistema IdUFF
+Código para lançamento automatizado de notas no sistema IdUFF
 
 ## São necessárias as seguintes bibliotecas do Python:
 * selenium
