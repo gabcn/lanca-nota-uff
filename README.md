@@ -8,7 +8,7 @@ Código para lançamento automatizado de notas no sistema IdUFF
 
 ## Passos:
 * Certifique-se de que tem o Google Chrome instalado e verifique a versão
-* Baixe o ChromeDriver em https://chromedriver.chromium.org/, atentando à versão do seu Google Chrome, e salve o arquivo ´chromedrive.exe´ na mesma pasta do código Python
+* Baixe o ChromeDriver em https://chromedriver.chromium.org/, atentando à versão do seu Google Chrome, e salve o arquivo `chromedrive.exe` na mesma pasta do código Python
 * Prepare o arquivo (.xlsx) com o número de matrícula, numa coluna com título Matricula (sem acento), e nota de cada aluno, numa coluna com título Nota (ver exemplo Notas.xlsx)
 * Na seção de `# === INPUTS === #` do código, especifique o nome do arquivo onde serão salvas as notas retiradas do site, se houver. Ele pode ser utilizado, posteriormente, para checagem das notas lançadas
 * Na seção de `# === INPUTS === #` do código, especifique o nome do arquivo com as notas
