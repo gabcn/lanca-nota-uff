@@ -13,20 +13,24 @@ Bibliotecas necessárias:
 # === INPUTS === #
 FileOutputSiteData = 'NotasNoSite.xlsx' # arquivo para salvar os valores atuais armazenados no sistema (.xlsx ou .csv)
 FileInputGrades = 'NotasParaLancar.xlsx' # arquivo com as notas a serem lançadas (.xlsx ou .csv)
-                                              # deve ter uma coluna 'Matricula' (sem acento), com as matrículas, 
-                                              # e uma coluna 'Nota', com a nota a ser lançadas
+                                              # deve ter uma coluna 'Column_Id', com as matrículas, 
+                                              # e uma coluna 'Column_Grade', com a nota a ser lançadas
                                               # outras colunas serão ignoradas
+Column_Id = 'Matricula'         # título da coluna no arquivo Excel contendo as matrículas
+Column_Grade = 'Nota'           # tútulo da coluna no arquivo Excel contendo as notas
+
 
 nDecimalPlaces = 1 # quantidade de casas decimais
-tPauseBetween = 0.1 # tempo, sem segundos, para pausa entre lançamento de notas
+tPauseBetween = 0.2 # tempo, sem segundos, para pausa entre lançamento de notas
 ChromeDriverPath = 'chromedriver.exe'   # driver para acesso automatizado ao Google Chrome
-                                        # baixe em https://chromedriver.chromium.org/, 
+                                        # baixe em https://chromedriver.chromium.org/ (versão correspondente ao Google Chrome instalado),
                                         # conforme a versão do Chrome instalado e o sistema operacional
 HtmlAdress = 'https://app.uff.br/graduacao/lancamentodenotas'   # endereço do sistema de lançamento de notas
 NumberOfStudents_Xpath = '/html/body/div/div[2]/div[2]/div/div[1]/div[1]/div/div[2]/div/div[1]/h1'
 
 # === LIBS === #
 from selenium import webdriver #
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from time import sleep
 import pandas as pd
@@ -34,19 +38,25 @@ from math import ceil
 
 # === AUX === #
 def InitiateBrowser():
-    driver = webdriver.Chrome(ChromeDriverPath)
+    chrome_options = Options() # to hide Chrome messages in the console
+    chrome_options.add_argument("--log-level=3") 
+    driver = webdriver.Chrome(ChromeDriverPath, chrome_options=chrome_options)
     driver.get(HtmlAdress)
     return driver
 
 def GetGrade(GradeList, id):
-    selecao = GradeList.loc[GradeList['Matricula'] == id]
+    selecao = GradeList.loc[GradeList[Column_Id] == id]
     if len(selecao) > 1:
         print(f'\n\nERRO! Mais de uma linha encontrada no arquivo de notas com a mesma matricula ({id})')
         return -1
     if len(selecao) == 0:
         print(f'\n\nERRO! Não foi encontrada uma linha no aruqivo de notas para matrícula {id}.')
         return -1
-    grade = selecao.iloc[0]['Nota']
+    grade = selecao.iloc[0][Column_Grade]
+    if type(grade) != float and type(grade) != int: 
+        print(f'Aviso! A nota encontrada no arquivo "{grade}" (valor não numérico), para o ' + \
+               'aluno de matrícula {id}, será considerada como 0 (zero).')
+        grade = 0
     grade = ceil(grade*10**nDecimalPlaces)/(10**nDecimalPlaces) #round(grade, nDecimalPlaces)
     return grade
 
@@ -79,7 +89,7 @@ def GetListFromSite(driver):
             grade = '-'
         list.append([mat, name, grade])
 
-    StudentList = pd.DataFrame(list, columns = ['Matricula', 'Nome', 'Nota Site'])
+    StudentList = pd.DataFrame(list, columns = [Column_Id, 'Nome', 'Nota Site'])
     StudentList.to_excel(FileOutputSiteData)
 
     print("\n\n\n\n========================================")
@@ -93,7 +103,7 @@ def GetNewGrades():
     StudentList['Nova Nota'] = pd.NaT # add a column
     NewGradeList = pd.read_excel(FileInputGrades)
     for i, row in StudentList.iterrows():
-        mat = row['Matricula']
+        mat = row[Column_Id]
         newgrade = GetGrade(NewGradeList, mat)
         StudentList.at[i, 'Nova Nota'] = newgrade
     print("\n\n\n\n========================================")
@@ -106,7 +116,7 @@ def GetNewGrades():
 
 def WriteGrades(driver):
     for i in range(nStudents):
-        id = StudentList.iloc[i]['Matricula']
+        id = StudentList.iloc[i][Column_Id]
         name = StudentList.iloc[i]['Nome']
         grade = StudentList.iloc[i]['Nova Nota']
         gradetxt = str(grade)
