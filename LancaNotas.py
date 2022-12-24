@@ -54,9 +54,14 @@ def GetGrade(GradeList, id):
         return -1
     grade = selecao.iloc[0][Column_Grade]
     if type(grade) != float and type(grade) != int: 
-        print(f'Aviso! A nota encontrada no arquivo "{grade}" (valor não numérico), para o ' + \
-               'aluno de matrícula {id}, será considerada como 0 (zero).')
-        grade = 0
+        try:
+            gradefloat = float(grade)
+        except:
+            print(f'Aviso! A nota encontrada no arquivo "{grade}" (valor tipo {type(grade)}, não numérico), para o ' + \
+                'aluno de matrícula {id}, será considerada como 0 (zero).')
+            grade = 0
+        else:
+            grade = gradefloat
     grade = ceil(grade*10**nDecimalPlaces)/(10**nDecimalPlaces) #round(grade, nDecimalPlaces)
     return grade
 
